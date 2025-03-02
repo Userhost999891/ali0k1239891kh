@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Losowanie Liczb</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .number {
+            width: 100px;
+            height: 100px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            font-size: 40px;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: transform 0.5s ease-in-out;
+        }
+        button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 24px;
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        .gradient-text {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(to right, #2c3e50, #34495e);
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-top: 50px;
+        }
+        .pink-gradient-text {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(to right, #ff66cc, #ff99cc);
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Losowanie 10 liczb od 1 do 100</h1>
+    <div class="container" id="numbers"></div>
+    <button id="lotteryButton" onclick="startLottery()">Start</button>
+    
+    <div class="gradient-text">Dedykacja dla starego!</div>
+    <div class="pink-gradient-text">DLA FAJNEJ BUŁY</div>
+
+    <script>
+        let isRunning = false;
+        let timeoutIds = [];
+        
+        // Funkcja odtwarzająca dźwięk
+        function playSound() {
+            const audio = new Audio('lol43.mp3');
+            audio.play();
+        }
+        
+        function startLottery() {
+            const numbersContainer = document.getElementById("numbers");
+            const button = document.getElementById("lotteryButton");
+            
+            if (isRunning) {
+                // Jeżeli przycisk "Reset" został kliknięty, następuje przekierowanie do lol.html
+                window.location.href = "lol.html";
+                return;
+            }
+            
+            numbersContainer.innerHTML = "";
+            // Ustawiony stały ciąg cyfr
+            let numbers = [7, 13, 58, 17, 20, 28, 31, 48, 12, 3];
+            
+            let index = 0;
+            button.textContent = "Reset";
+            isRunning = true;
+            
+            numbers.forEach(number => {
+                let div = document.createElement("div");
+                div.classList.add("number");
+                div.textContent = "?";
+                numbersContainer.appendChild(div);
+                
+                // Ustawienie opóźnienia dla każdej liczby
+                let timeoutId = setTimeout(() => {
+                    div.textContent = number;
+                    div.style.transform = "scale(1.2)";
+                    setTimeout(() => div.style.transform = "scale(1)", 300);
+                    playSound();
+                }, index * 500);
+                timeoutIds.push(timeoutId);
+                index++;
+            });
+        }
+    </script>
+</body>
+</html>
