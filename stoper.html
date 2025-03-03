@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        .timer {
+            font-size: 6rem; /* Zwiększony rozmiar czcionki */
+            margin-bottom: 40px; /* Większa przestrzeń między timerem a przyciskami */
+        }
+        .buttons {
+            display: flex;
+            gap: 30px; /* Większa odległość między przyciskami */
+            margin-bottom: 40px;
+        }
+        button {
+            background: #333;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px); /* subtelny blur */
+            font-size: 2rem; /* Zwiększony rozmiar czcionki w przyciskach */
+        }
+        button img {
+            width: 50px; /* Zwiększenie rozmiaru obrazków */
+            height: 50px;
+        }
+        button:hover {
+            background: #555;
+        }
+        #records-btn {
+            background: #333;
+            color: #fff;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 2rem; /* Zwiększony rozmiar czcionki w przycisku Rekord */
+            backdrop-filter: blur(4px); /* subtelny blur */
+        }
+        #records-btn:hover {
+            background: #555;
+        }
+        .records {
+            margin-top: 20px;
+            background: #222;
+            padding: 20px;
+            border-radius: 15px;
+            width: 300px;
+            text-align: center;
+            display: none;
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            backdrop-filter: blur(4px); /* subtelny blur */
+        }
+        .records-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.5rem; /* Zwiększenie rozmiaru czcionki na liście rekordów */
+        }
+        .close-btn {
+            background: #555;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.5rem; /* Zwiększenie rozmiaru czcionki w przycisku zamykania */
+        }
+    </style>
+</head>
+<body>
+    <div class="timer">00:00:00.000</div>
+    <div class="buttons">
+        <button id="start"><img src="zacznij.png" alt="Start"></button>
+        <button id="reset"><img src="koło.png" alt="Reset"></button>
+        <button id="stop"><img src="pauza.png" alt="Stop"></button>
+    </div>
+    <button id="records-btn">Rekord</button>
+
+    <div class="records" id="records">
+        <ul class="records-list" id="records-list"></ul>
+        <button class="close-btn" id="close-records">X</button>
+    </div>
+
+    <script>
+        let timer;
+        let milliseconds = 0;
+        let running = false;
+        let highestRecord = JSON.parse(localStorage.getItem("highestRecord")) || "00:00:00.000";
+        
+        function updateTimer() {
+            let hrs = String(Math.floor(milliseconds / 3600000)).padStart(2, '0');
+            let mins = String(Math.floor((milliseconds % 3600000) / 60000)).padStart(2, '0');
+            let secs = String(Math.floor((milliseconds % 60000) / 1000)).padStart(2, '0');
+            let ms = String(milliseconds % 1000).padStart(3, '0');
+            document.querySelector(".timer").textContent = `${hrs}:${mins}:${secs}.${ms}`;
+        }
+        
+        function saveRecord() {
+            let currentRecord = document.querySelector(".timer").textContent;
+            if (currentRecord > highestRecord) {
+                highestRecord = currentRecord;
+                localStorage.setItem("highestRecord", JSON.stringify(highestRecord));
+            }
+        }
+        
+        function displayRecords() {
+            const recordsList = document.getElementById("records-list");
+            recordsList.innerHTML = "";
+            let li = document.createElement("li");
+            li.textContent = "Najwyższy Rekord: " + highestRecord;
+            recordsList.appendChild(li);
+            document.getElementById("records").style.display = "block";
+        }
+        
+        document.getElementById("start").addEventListener("click", () => {
+            if (!running) {
+                running = true;
+                timer = setInterval(() => {
+                    milliseconds += 10;
+                    updateTimer();
+                }, 10);
+            }
+        });
+        
+        document.getElementById("stop").addEventListener("click", () => {
+            if (running) saveRecord();
+            clearInterval(timer);
+            running = false;
+        });
+        
+        document.getElementById("reset").addEventListener("click", () => {
+            clearInterval(timer);
+            running = false;
+            milliseconds = 0;
+            updateTimer();
+        });
+        
+        document.getElementById("records-btn").addEventListener("click", () => {
+            displayRecords();
+        });
+
+        document.getElementById("close-records").addEventListener("click", () => {
+            document.getElementById("records").style.display = "none";
+        });
+    </script>
+</body>
+</html>
