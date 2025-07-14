@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Roblox NoClip + FlyGUI</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: monospace;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 {
+      margin-bottom: 5px;
+    }
+    textarea {
+      width: 90%;
+      height: 150px;
+      background: #222;
+      color: #00ff88;
+      border: none;
+      padding: 10px;
+      margin-bottom: 10px;
+      resize: none;
+    }
+    button {
+      padding: 8px 15px;
+      margin-bottom: 30px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🚫 NoClip Script</h2>
+  <textarea id="noclipScript" readonly>
+-- Sam NoClip (ciągły, bez latania)
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+game:GetService("RunService").Stepped:Connect(function()
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = false
+        end
+    end
+end)
+  </textarea>
+  <button onclick="copyText('noclipScript')">📋 Kopiuj NoClip</button>
+
+  <h2>🪂 FlyGUI v3 (loadstring)</h2>
+  <textarea id="flyScript" readonly>
+loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+  </textarea>
+  <button onclick="copyText('flyScript')">📋 Kopiuj FlyGUI</button>
+
+  <script>
+    function copyText(id) {
+      const area = document.getElementById(id);
+      area.select();
+      area.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("✅ Skrypt został skopiowany!");
+    }
+  </script>
+
+</body>
+</html>
