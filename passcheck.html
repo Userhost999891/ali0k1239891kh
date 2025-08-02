@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menedżer Pasy</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(120deg, #0d0d0d, #1a1a40);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 6vw;
+    }
+
+    #passList {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .password-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #444;
+      border-radius: 10px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      transition: transform 0.3s ease;
+    }
+
+    .password-item:hover {
+      transform: scale(1.02);
+    }
+
+    .password-item > div:first-child {
+      flex: 1 1 100%;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    button {
+      background: #4e4eff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      margin: 2px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+      user-select: none;
+    }
+
+    button:hover {
+      background: #3333cc;
+    }
+
+    #addBtn {
+      margin-bottom: 20px;
+      font-size: 18px;
+      padding: 10px 20px;
+    }
+
+    #modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #modalContent {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 20px #000;
+      animation: fadeIn 0.4s ease;
+      box-sizing: border-box;
+    }
+
+    #modalContent input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #2c2c2c;
+      color: white;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #search {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 600px;
+      background: #2c2c2c;
+      color: white;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    #exportBtn, #importBtn {
+      margin: 10px 5px;
+      background: #008080;
+    }
+
+    @media screen and (max-width: 600px) {
+      .password-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      button {
+        width: 100%;
+        margin: 5px 0;
+        font-size: 1.1rem;
+      }
+
+      #modalContent {
+        width: 90%;
+        padding: 15px;
+      }
+
+      #search {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Menedżer Pasy</h1>
+
+  <input id="search" placeholder="Szukaj po nazwie..." oninput="renderPasses()" />
+  <button id="addBtn" onclick="showAddModal()">Dodaj pass</button>
+  <div id="passList"></div>
+
+  <button id="exportBtn" onclick="exportPasses()">📤 Eksportuj</button>
+  <button id="importBtn" onclick="document.getElementById('importInput').click()">📥 Importuj</button>
+  <input type="file" id="importInput" accept=".json" style="display:none" onchange="importPasses(event)" />
+
+  <div id="modal">
+    <div id="modalContent">
+      <h3 id="modalTitle">Dodaj pass</h3>
+      <input id="passName" placeholder="Nazwa" autocomplete="off" />
+      <input id="passValue" placeholder="Hasło" autocomplete="off" />
+      <button onclick="savePass()">Zapisz</button>
+      <button onclick="closeModal()">Anuluj</button>
+    </div>
+  </div>
+
+  <script>
+    let passes = JSON.parse(localStorage.getItem("passes") || "[]");
+    let editingIndex = null;
+
+    function renderPasses() {
+      const list = document.getElementById("passList");
+      const filter = document.getElementById("search").value.toLowerCase();
+      list.innerHTML = "";
+
+      const filtered = passes.filter(p => p.name.toLowerCase().includes(filter));
+
+      if (filtered.length === 0) {
+        list.innerHTML = "<p>Brak pasów.</p>";
+        return;
+      }
+
+      filtered.forEach((p, index) => {
+        const div = document.createElement("div");
+        div.className = "password-item";
+        div.innerHTML = `
+          <div><strong>${p.name}</strong><br>${p.pass}</div>
+          <div>
+            <button onclick="copyPass('${encodeURIComponent(p.pass)}')">📋</button>
+            <button onclick="showAddModal(${index})">✏️</button>
+            <button onclick="confirmDelete(${index})">🗑️</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function showAddModal(editIndex = null) {
+      document.getElementById("modal").style.display = "flex";
+      document.getElementById("modalTitle").textContent = editIndex !== null ? "Edytuj pass" : "Dodaj pass";
+      document.getElementById("passName").value = editIndex !== null ? passes[editIndex].name : "";
+      document.getElementById("passValue").value = editIndex !== null ? passes[editIndex].pass : "";
+      editingIndex = editIndex;
+    }
+
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("passName").value = "";
+      document.getElementById("passValue").value = "";
+      editingIndex = null;
+    }
+
+    function savePass() {
+      const name = document.getElementById("passName").value.trim();
+      const pass = document.getElementById("passValue").value.trim();
+      if (!name || !pass) return alert("Proszę wypełnić oba pola.");
+
+      if (editingIndex !== null) {
+        passes[editingIndex] = { name, pass };
+      } else {
+        passes.push({ name, pass });
+      }
+
+      localStorage.setItem("passes", JSON.stringify(passes));
+      closeModal();
+      renderPasses();
+    }
+
+    function confirmDelete(index) {
+      if (confirm("Na pewno chcesz usunąć ten pass?")) {
+        passes.splice(index, 1);
+        localStorage.setItem("passes", JSON.stringify(passes));
+        renderPasses();
+      }
+    }
+
+    function copyPass(encodedText) {
+      const text = decodeURIComponent(encodedText);
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Skopiowano hasło do schowka!");
+      });
+    }
+
+    function exportPasses() {
+      const data = JSON.stringify(passes, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "passes.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importPasses(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            passes = imported;
+            localStorage.setItem("passes", JSON.stringify(passes));
+            renderPasses();
+            alert("Import zakończony sukcesem!");
+          } else {
+            alert("Niepoprawny format pliku.");
+          }
+        } catch {
+          alert("Nie udało się wczytać pliku.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    renderPasses();
+  </script>
+</body>
+</html>
